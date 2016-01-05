@@ -46,7 +46,7 @@
                 <label on-dblclick='set("currentlyEditing",i)'>
                   {{description}}
                   <span style="color: #555; padding-top: 7px; font-size: 70%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
-                    {{url}}
+                    <a style="text-decoration: none" href='{{url}}' target="_blank">{{url}}</a>
                   </span>
                   </label>
                 <button on-tap='splice("items", i, 1)' class='destroy'></button>

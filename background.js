@@ -1,8 +1,6 @@
-chrome.app.runtime.onLaunched.addListener(function() {
-  chrome.app.window.create('window.html', {
-    'outerBounds': {
-      'width': 400,
-      'height': 500
-    }
+
+chrome.browserAction.onClicked.addListener(function(){
+  chrome.tabs.create({
+    url: chrome.extension.getURL('main.html')
   });
 });

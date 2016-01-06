@@ -13,7 +13,7 @@ var ractive;
 //   });
 // });
 
-Ractive.load( 'TodoList.html' ).then( function ( TodoList ) {
+Ractive.load( 'item-list.html' ).then( function ( ItemList ) {
 
   var items = [];
 
@@ -30,7 +30,7 @@ Ractive.load( 'TodoList.html' ).then( function ( TodoList ) {
   //   ];
   // }
 
-  ractive = new TodoList({
+  ractive = new ItemList({
     el: 'main',
     data: {
       items: items

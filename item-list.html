@@ -1,103 +1,83 @@
-<div class='todo-app'>
+<div class=''>
   <header style="position:relative; margin: 10px; height: 35px;">
     <div style="position:absolute; top: 0; right:0">
-      <button on-tap="saveTabs()" style="cursor: pointer; border: 1px solid #333; margin: 0px; padding: 10px; font-size: 2em; color: #222">
+      <button on-tap="saveItems()" style="cursor: pointer; border: 1px solid #333; margin: 0px; padding: 10px; font-size: 2em; color: #222">
         Save
       </button>
     </div>
   </header>
+  {{#if output}}
+  <div style="margin: 20px">
+    <textarea style="width: 100%" rows={{output.split('\n').length}}>{{output}}</textarea>
+  </div>
+  {{/if}}
   <!--
   <header>
     <input
-      class='new-todo'
-      on-change='createTodo(event)'
+      class='new-item'
+      on-change='createItem(event)'
       placeholder='What needs to be done?'
       autofocus
     >
   </header>
 -->
 
-  {{#if items.length}} <!-- only show when there are one or more items -->
-    <section class='main'>
+  {{#if items.length}}
+  <!-- only show when there are one or more items -->
+  <section class='main'>
 
-      <!-- 'toggle all' button -->
-      <div class='toggle-all-container'>
-        <label for='toggle-all'>Mark all as complete</label>
-        <input
-          name='toggle-all'
-          class='toggle toggle-all'
-          type='checkbox'
-          on-change='toggleAll(event)'
-          twoway='false'
-          checked='{{ items.length === completedTodos.length }}'
-        >
-      </div>
+    <!-- 'toggle all' button -->
+    <div class='toggle-all-container'>
+      <label for='toggle-all'>Mark all as complete</label>
+      <input name='toggle-all' class='toggle toggle-all' type='checkbox' on-change='toggleAll(event)' twoway='false' checked='{{ items.length === completedItems.length }}'>
+    </div>
 
-      <!-- the actual list -->
-      <ul class='todo-list'>
-        {{#each items:i}}
-          {{#if filter(this)}}
-            <li
-              intro-outro='slide:fast'
-              class='item {{ completed ? "completed" : "" }} {{ currentlyEditing === i ? "editing" : "" }}'
-            >
-              <div class='view'>
-                <input class='toggle' type='checkbox' checked='{{completed}}'>
-                <label on-dblclick='set("currentlyEditing",i)'>
-                  {{description}}
-                  <span style="color: #555; padding-top: 7px; font-size: 70%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
-                    <a style="text-decoration: none" href='{{url}}' target="_blank">{{url}}</a>
-                  </span>
-                  </label>
-                <button on-tap='splice("items", i, 1)' class='destroy'></button>
-              </div>
+    <!-- the actual list -->
+    <ul class='item-list'>
+      {{#each items:i}} {{#if filter(this)}}
+      <li intro-outro='slide:fast' class='item {{ completed ? "completed" : "" }} {{ currentlyEditing === i ? "editing" : "" }}'>
+        <div class='view'>
+          <input class='toggle' type='checkbox' checked='{{completed}}'>
+          <label on-dblclick='set("currentlyEditing",i)'>
+            {{description}}
+            <span style="color: #555; padding-top: 7px; font-size: 70%; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
+              <a style="text-decoration: none" href='{{url}}' target="_blank">{{url}}</a>
+            </span>
+          </label>
+          <button on-tap='splice("items", i, 1)' class='destroy'></button>
+        </div>
 
-              {{#if currentlyEditing === i}}
-                <div class='edit-container'>
-                  <input
-                    decorator='select'
-                    class='edit'
-                    value='{{description}}'
-                    on-blur-change='submitEdit(event, i)'
-                  >
-                </div>
-              {{/if}}
-            </li>
-          {{/if}}
-        {{/each}}
-      </ul>
-    </section>
+        {{#if currentlyEditing === i}}
+        <div class='edit-container'>
+          <input decorator='select' class='edit' value='{{description}}' on-blur-change='submitEdit(event, i)'>
+        </div>
+        {{/if}}
+      </li>
+      {{/if}} {{/each}}
+    </ul>
+  </section>
 
-    <section class='footer' intro='fade' outro='slide'>
-      <span class='todo-count'>
-        <strong>{{ activeTodos.length }}</strong> {{ activeTodos.length === 1 ? 'item' : 'items' }} left
-      </span>
+  <section class='footer' intro='fade' outro='slide'>
+    <span class='item-count'>
+      <strong>{{ activeItems.length }}</strong> {{ activeItems.length === 1 ? 'item' : 'items' }} left
+    </span>
 
-      <!-- switch filters -->
-      <ul class='filters'>
-        <li
-          class='{{ currentFilter === "all" ? "selected" : "" }}'
-          on-tap='set("currentFilter","all")'
-        >All</li>
+    <!-- switch filters -->
+    <ul class='filters'>
+      <li class='{{ currentFilter === "all" ? "selected" : "" }}' on-tap='set("currentFilter","all")'>All</li>
 
-        <li
-          class='{{ currentFilter === "active" ? "selected" : "" }}'
-          on-tap='set("currentFilter","active")'
-        >Active</li>
+      <li class='{{ currentFilter === "active" ? "selected" : "" }}' on-tap='set("currentFilter","active")'>Active</li>
 
-        <li
-          class='{{ currentFilter === "completed" ? "selected" : "" }}'
-          on-tap='set("currentFilter","completed")'
-        >Completed</li>
-      </ul>
+      <li class='{{ currentFilter === "completed" ? "selected" : "" }}' on-tap='set("currentFilter","completed")'>Completed</li>
+    </ul>
 
-      <!-- hidden if no completed items are left -->
-      {{#if completedTodos.length }}
-        <button class='clear-completed' on-tap='clearCompleted()'>
-          Clear completed ({{ completedTodos.length }})
-        </button>
-      {{/if}}
-    </section>
+    <!-- hidden if no completed items are left -->
+    {{#if completedItems.length }}
+    <button class='clear-completed' on-tap='clearCompleted()'>
+      Clear completed ({{ completedItems.length }})
+    </button>
+    {{/if}}
+  </section>
   {{/if}}
 </div>
 
@@ -105,13 +85,19 @@
 <script>
   // set up some filters
   var filters = {
-    completed: function ( item ) { return item.completed; },
-    active: function ( item ) { return !item.completed; },
-    all: function () { return true; }
+    completed: function(item) {
+      return item.completed;
+    },
+    active: function(item) {
+      return !item.completed;
+    },
+    all: function() {
+      return true;
+    }
   };
 
   component.exports = {
-    data: function () {
+    data: function() {
       return {
         filters: filters,
         currentFilter: 'all'
@@ -119,22 +105,22 @@
     },
 
     computed: {
-      completedTodos: function () {
-        return this.get( 'items' ).filter( filters.completed );
+      completedItems: function() {
+        return this.get('items').filter(filters.completed);
       },
 
-      activeTodos: function () {
-        return this.get( 'items' ).filter( filters.active );
+      activeItems: function() {
+        return this.get('items').filter(filters.active);
       },
 
-      filter: function () {
-        return filters[ this.get( 'currentFilter' ) ];
+      filter: function() {
+        return filters[this.get('currentFilter')];
       }
     },
 
     // Methods for interacting with the list
-    createTodo: function ( event ) {
-      this.push( 'items', {
+    createItem: function(event) {
+      this.push('items', {
         description: event.node.value,
         url: event.node.value,
         completed: false
@@ -143,28 +129,39 @@
       event.node.value = ''; // reset
     },
 
-    submitEdit: function ( event, index ) {
-      this.set( 'items[' + index + '].description', event.node.value );
-      this.set( 'currentlyEditing', null );
+    submitEdit: function(event, index) {
+      this.set('items[' + index + '].description', event.node.value);
+      this.set('currentlyEditing', null);
     },
 
-    clearCompleted: function () {
-      var items = this.get( 'items' );
+    clearCompleted: function() {
+      var items = this.get('items');
       var i = items.length;
 
-      while ( i-- ) {
-        if ( items[i].completed ) {
-          this.splice( 'items', i, 1 );
+      while (i--) {
+        if (items[i].completed) {
+          this.splice('items', i, 1);
         }
       }
     },
 
-    toggleAll: function ( event ) {
-      this.set( 'items[*].completed', event.node.checked );
+    toggleAll: function(event) {
+      this.set('items[*].completed', event.node.checked);
     },
 
-    saveTabs: function () {
-      console.log(this.get('items'));
+    saveItems: function() {
+      var items = this.get('items');
+      var activeItems = this.get('activeItems');
+
+      console.log('activeItems', activeItems);
+
+      var text = "";
+      activeItems.forEach(function(item, i) {
+        text += item.url + "\n";
+        console.log(item.url);
+      });
+
+      this.set('output', text);
     },
 
     // Event and transition plugins
@@ -181,14 +178,14 @@
     // we want to select the contents of the edit <input>
     // as soon as it's created
     decorators: {
-      select: function ( node ) {
-        setTimeout( function () {
+      select: function(node) {
+        setTimeout(function() {
           node.select();
         });
 
         return {
           // teardown is a noop
-          teardown: function () {}
+          teardown: function() {}
         };
       }
     },
@@ -199,7 +196,10 @@
 </script>
 
 <style>
-  button, button:hover, button:active, button:focus {
+  button,
+  button:hover,
+  button:active,
+  button:focus {
     border: none;
     background: none;
     margin: 0;
@@ -210,7 +210,7 @@
     margin: 0;
   }
 
-  .new-todo,
+  .new-item,
   .edit {
     margin: 0;
     width: 100%;
@@ -222,7 +222,7 @@
     box-sizing: border-box;
   }
 
-  .new-todo {
+  .new-item {
     padding: 16px 16px 16px 60px;
     border: 1px dotted #ddd;
   }
@@ -251,10 +251,11 @@
     left: -4px;
     width: 40px;
     text-align: center;
-    border: none; /* Mobile Safari */
+    border: none;
+    /* Mobile Safari */
   }
 
-  .todo-list {
+  .item-list {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -302,7 +303,8 @@
     left: 0;
     margin: auto 0;
     outline: none;
-    border: none; /* Mobile Safari */
+    border: none;
+    /* Mobile Safari */
     -webkit-appearance: none;
     /*-moz-appearance: none;*/
     -ms-appearance: none;
@@ -315,7 +317,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     font-size: 20px;
     color: #d9d9d9;
     text-shadow: 0 -1px 0 #bfbfbf;
@@ -356,7 +358,7 @@
     width: 40px;
     height: 100%;
     font-size: 22px;
-    color: rgb(180,0,0);
+    color: rgb(180, 0, 0);
     opacity: 0.3;
     cursor: pointer;
     -webkit-transition: all 0.2s;
@@ -371,7 +373,7 @@
     position: absolute;
     top: 55%;
     left: 50%;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
     content: '\274C';
     line-height: 1;
   }
@@ -395,7 +397,7 @@
     border-top: 1px dotted #adadad;
   }
 
-  .todo-count {
+  .item-count {
     float: left;
     text-align: left;
   }
